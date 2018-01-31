@@ -1,0 +1,73 @@
+#----------------------------------预测部分---------------------------------
+#------------------------------叫我分割线啊，分啊分---------------------------
+#----------------------------------预测部分---------------------------------
+#导入权重
+import numpy as np
+#from logistic regression import sig
+def load_weigth(w):
+    f = open(w)
+    w = []
+    for line in f.readlines():
+        lines = line.strip().split("\t")
+        w_tem = []
+        for i in lines:
+            w_tem.append(float(i))
+        w.append(w_tem)
+    f.close()
+    return np.mat(w)
+
+def load_data(file_name,n):
+    '''
+    input:file_name,n特征
+    output:np.feature(mat)
+    '''
+
+    f = open(file_name)
+    feature_data = []
+    for line in f.readlines():
+        feature_tem = []
+        lines = line.strip().split("\t")
+        if len(lines) != n - 1:#python2中不等于为<>,3中为！=
+            continue
+        feature_tem.append(1)#
+        for x in lines:
+            feature_tem.append(float(x))
+        feature_data.append(feature_tem)
+    f.close()
+    return np.mat(feature_data)
+
+def sig(x):
+    return 1.0/(1+np.exp(-x))
+
+def predict(data,w):
+    h = sig(data * w.T)
+    m = np.shape(h)[0]
+    for i in range(m):
+        if h[i,0] > 0.5:
+            h[i,0] = 1.0
+        else:
+            h[i,0] = 0.0
+    return h
+
+
+def save_model(file_name,result):
+    m = np.shape(result)[0]
+    tem = []
+    for i in range(m):
+        tem.append(str(result[i,0]))
+    f_result = open(file_name,"w")
+    f_result.write("\t".join(tem))
+    f_result.close()
+
+
+if __name__ == '__main__':
+    print("----------1导入模型啦----------")
+    w = load_weigth("weigths")
+    n = np.shape(w)[1]
+    print("----------2导入测试数据啦-------")
+    text_data = load_data(r'C:\Users\yangR\Desktop\lizi\text.txt', n)
+    print("-----------3开始预测啦----------")
+    h = predict(text_data,w)
+    print("-----------4保存模型啦-----------")
+    save_model("result", h)
+

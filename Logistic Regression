@@ -1,0 +1,132 @@
+import matplotlib.pyplot as plt
+import numpy as np
+import random
+
+def load_data(file_name):
+    '''导入训练数据
+    input:  file_name(string)训练数据的位置
+    output: feature_data(mat)特征
+            label_data(mat)标签
+    '''
+    f = open(file_name, "r+",
+             encoding="utf-8")  # 打开文件,这里需要加入编码,"UnicodeDecodeError: 'gbk' codec can't decode byte 0x80 in position 205: illegal multibyte sequence"
+        #utf_8_sig
+    feature_data = []
+    label_data = []
+    for line in f.readlines():
+        feature_tem = []
+        label_tem = []
+        lines = line.strip().split('\t')
+        #print(lines)
+        # print(len(lines))
+        feature_tem.append(1)#偏置项b,W0X0,其中X0为1，y=WX+b  -> y=w1x1+w2x2+...+wnxn+b ,b可以看做 w0x0, 其中 x0=1
+        for i in range(len(lines) - 1):
+            feature_tem.append(float(lines[i]))
+        label_tem.append(float(lines[-1]))
+
+        feature_data.append(feature_tem)
+        label_data.append(label_tem)
+    f.close()
+    return np.mat(feature_data), np.mat(label_data)
+
+def plotDataSet():
+    dataMat, labelMat = load_data(r'C:\Users\yangR\Desktop\lizi\train.txt')         #加载数据集
+    dataArr = np.array(dataMat)                                            #转换成numpy的array数组以便取出数据
+    n = np.shape(dataMat)[0]                                            #数据个数
+    xcord1 = []; ycord1 = []                                            #正样本
+    xcord2 = []; ycord2 = []                                            #负样本
+    for i in range(n):                                                    #根据数据集标签进行分类
+        if int(labelMat[i]) == 1:
+            xcord1.append(dataArr[i,1]); ycord1.append(dataArr[i,2])    #1为正样本
+        else:
+            xcord2.append(dataArr[i,1]); ycord2.append(dataArr[i,2])    #0为负样本
+    fig = plt.figure()
+    ax = fig.add_subplot(111)                                            #添加subplot
+    ax.scatter(xcord1, ycord1, s = 20, c = 'red', marker = 's',alpha=.5)#绘制正样本
+    ax.scatter(xcord2, ycord2, s = 20, c = 'green',alpha=.5)            #绘制负样本
+    plt.title('鄙人数据的空间分布我快乐呵呵呵',fontproperties='SimHei')               #绘制title
+    plt.xlabel('鄙人是x',fontproperties='SimHei'); plt.ylabel('鄙人是y',fontproperties='SimHei')          #绘制label
+    plt.show()                                                            #显示
+
+
+def sig(z):
+	return 1.000000/(1+np.exp(-z))
+
+
+def lr_train_bgd(feature,label,maxCycle,alpha):#利用梯度训练
+    n = np.shape(feature)[1]
+    w = np.mat(np.ones((n,1)))#初始化权重，权重是列向量
+    i = 0
+    
+    while i <= maxCycle:
+        i += 1
+        h = sig(feature * w)#计算sigmoid的真实值
+        erro = label - h#计算误差预测值与真实值之间的差
+        if i % 100 == 0:
+            print("\t----------iter=" + str(i) + ",train error rate=" + str(error_rate(h,label)))
+
+            w = w + alpha * feature.T * erro#更新w
+            
+    return w         
+    
+
+
+def error_rate(h,label):
+    m = np.shape(h)[0]
+    sum_err = 0.0
+    for i in range(m):
+        if h[i,0]>0 and (1-h[i,0]) >0:
+            sum_err -= (label[i,0] * np.log(h[i,0]) + (1-label[i,0]) * np.log(1-h[i,0]))
+        else:
+            sum_err -= 0
+
+    return sum_err/m
+
+
+def save_model(file_name,w):#讲训练好的模型保存起来
+    
+    m = np.shape(w)[0]
+
+    f_w = open(file_name,"w")
+    w_array = []
+    for i in range(m):
+        w_array.append(str(w[i,0]))
+    f_w.write("\t".join(w_array))
+    f_w.close()
+
+
+def plotBestFit(w):
+    dataMat, labelMat = load_data(r'C:\Users\yangR\Desktop\lizi\train.txt')      #加载数据集
+    dataArr = np.array(dataMat)                                            #转换成numpy的array数组
+    n = np.shape(dataMat)[0]                                            #数据个数
+    xcord1 = []; ycord1 = []                                            #正样本
+    xcord2 = []; ycord2 = []                                            #负样本
+    for i in range(n):                                                    #根据数据集标签进行分类
+        if int(labelMat[i]) == 1:
+            xcord1.append(dataArr[i,1]); ycord1.append(dataArr[i,2])    #1为正样本
+        else:
+            xcord2.append(dataArr[i,1]); ycord2.append(dataArr[i,2])    #0为负样本
+    w = np.array(w)             #得到的w是矩阵
+    fig = plt.figure()
+    ax = fig.add_subplot(111)                                            #添加subplot
+    ax.scatter(xcord1, ycord1, s = 20, c = 'red', marker = 's',alpha=.5)#绘制正样本
+    ax.scatter(xcord2, ycord2, s = 20, c = 'green',alpha=.5)            #绘制负样本
+    x = np.arange(0.2,1, 1)
+    y = (-w[0] - w[1] * x) / w[2]
+    ax.plot(x, y)
+    plt.title('最好的拟合啦',fontproperties='SimHei')                                                #绘制title
+    plt.xlabel('鄙人是X1啊',fontproperties='SimHei'); plt.ylabel('鄙人是X2啊',fontproperties='SimHei')                                    #绘制label
+    plt.show() 
+
+
+
+if __name__ == '__main__':
+    print("-------1导入数据并画图像啦，但是不想显示出来呵呵-------")
+    feature,label = load_data(r'C:\Users\yangR\Desktop\lizi\train.txt')
+    
+    print("--------2训练模型啦并画出最佳的拟合图像，当然显示出来啊----------")
+    w = lr_train_bgd(feature,label,900,0.01)
+    plotBestFit(w)
+    print("--------3终于可以保存模型啦，好累啊~~~~~--------")
+    save_model("weigths", w)
+    

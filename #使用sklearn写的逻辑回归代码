@@ -1,0 +1,44 @@
+#使用sklearn写的逻辑回归代码
+
+from sklearn.linear_model import LogisticRegression   #导入基本的模块包
+
+def load_data():
+	f_train = open(r'D:\Python\Mathine Learning\Python机器学习算法\第一章Logistic Regression\补充例子\lizi\train.txt',encoding='utf-8')
+	f_text = open(r'D:\Python\Mathine Learning\Python机器学习算法\第一章Logistic Regression\补充例子\lizi\text.txt',encoding='utf-8')
+	train_feature = []
+	train_label = []
+	text_feature = []
+	text_label = []
+	for lines in f_train.readlines():
+		line = lines.strip().split('\t')
+		line_all = []
+		for i in range(len(line)-1):
+			line_all.append(float(line[i]))
+		train_feature.append(line_all)
+		train_label.append(float(line[-1]))
+	for T_lines in f_text.readlines():
+		T_line = T_lines.strip().split('\t')
+		T_line_all = []
+		for a in range(len(T_line) - 1):
+			T_line_all.append(float(T_line[a]))
+		text_feature.append(T_line_all)
+		text_label.append(float(T_line[-1]))
+	return train_feature,train_label,text_feature,text_label
+	
+	#到此数据的导入完成啦，开始训练：
+
+def train_data(a,b,c,d):
+	classifier = LogisticRegression(solver='sag',max_iter=5000).fit(a,b)#sag,liblinear
+	test_score = classifier.score(c,d) * 100
+	print('正确的概率为:%f%%' % test_score)
+
+if __name__ == '__main__':
+
+	train_feature,train_label,text_feature,text_label = load_data()
+	train_data(train_feature,train_label,text_feature,text_label)
+
+
+
+
+
+	
